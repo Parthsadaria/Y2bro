@@ -25,8 +25,13 @@
         h1 {
             font-size: 100px;
             text-align: center;
-            margin:  0px;
+            margin: 0;
             color: #00bcd4; /* Bright cyan for the heading */
+        }
+
+        h3 {
+            color: grey;
+            margin: 0.5rem 0; /* Space around subtitle */
         }
 
         input, button {
@@ -52,7 +57,7 @@
         }
 
         .tabs {
-            display: none;
+            display: flex;
             justify-content: center;
             margin: 2rem 0; /* Space around tabs */
         }
@@ -89,7 +94,6 @@
             margin: 1rem 0; /* Space between sections */
             width: 100%;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-            display: none; /* Start hidden */
         }
 
         .video-card img {
@@ -136,6 +140,7 @@
             margin-top: 2rem;
             color: #bbb; /* Light grey for footer */
         }
+
         .loading {
             display: none; /* Hidden by default */
             position: fixed;
@@ -162,8 +167,8 @@
 </head>
 <body>
     <h1>Y2Bro</h1>
-    <h3 style="color: grey; margin-top: 0px;">By Parth Sadaria</h3>
-    <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL" />
+    <h3>By Parth Sadaria</h3>
+    <input type="text" id="youtubeUrl" placeholder="Enter YouTube/Instagram URL" />
     <button id="fetchInfo">Download Video</button>
     <div class="loading" id="loading">
         <div class="spinner"></div>
@@ -194,7 +199,7 @@
     </div>
 
     <script>
-          function showLoading() {
+        function showLoading() {
             document.getElementById('loading').style.display = 'flex';
         }
 
@@ -204,7 +209,18 @@
 
         document.getElementById('fetchInfo').addEventListener('click', async () => {
             const url = document.getElementById('youtubeUrl').value;
-            const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
+            let apiUrl;
+
+            // Check if the URL is for YouTube or Instagram
+            if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
+            } else if (url.includes("instagram.com")) {
+                apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
+            } else {
+                alert("Please enter a valid YouTube or Instagram URL.");
+                return;
+            }
+
             showLoading();
             try {
                 const response = await fetch(apiUrl);
@@ -221,56 +237,42 @@
         });
 
         function displayResults(data) {
-            hideLoading()
+            hideLoading();
             document.getElementById('tabs').style.display = 'flex';
-            document.getElementById('videoThumbnail').src = data.thumbnailUrl;
+            document.getElementById('videoThumbnail').src = data.thumbnailUrl || '';
             document.getElementById('videoThumbnail').style.display = 'block'; // Show thumbnail
-            document.getElementById('videoTitle').textContent = data.title;
-            document.getElementById('videoDuration').textContent = "Duration: " + data.duration;
+            document.getElementById('videoTitle').textContent = data.title || 'N/A';
+            document.getElementById('videoDuration').textContent = "Duration: " + (data.duration || 'N/A');
 
             const videoOptions = document.getElementById('videoOptions');
-            videoOptions.innerHTML = data.formats.filter(format => format.ext === 'mp4' || format.ext == 'webm').map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
-                    ${format.ext.toUpperCase()} (${format.label})
-                </a>
-            `).join('');
+            videoOptions.innerHTML = data.formats?.filter(format => format.ext === 'mp4' || format.ext === 'webm'||format.ext === undefined).map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
+            `).join('') || 'No video formats available.';
 
             const audioOptions = document.getElementById('audioOptions');
-            audioOptions.innerHTML = data.formats.filter(format => format.ext === 'mp3' || format.ext === 'aac' || format.ext === 'm4a' || format.ext === 'opus').map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
-                    ${format.ext.toUpperCase()} (${format.label})
-                </a>
-            `).join('');
+            audioOptions.innerHTML = data.formats?.filter(format => format.ext === 'mp3' || format.ext === 'wav').map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
+            `).join('') || 'No audio formats available.';
 
             const otherOptions = document.getElementById('otherOptions');
-            otherOptions.innerHTML = data.formats.filter(format => format.ext !== 'mp4' && format.ext !== 'mp3' && format.ext !== 'aac').map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
-                    ${format.ext.toUpperCase()} (${format.label})
-                </a>
-            `).join('');
+            otherOptions.innerHTML = data.formats?.filter(format => format.ext !== 'mp4' && format.ext !== 'mp3' && format.ext !== 'wav').map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
+            `).join('') || 'No other formats available.';
 
-            // Show results section
             document.getElementById('results').style.display = 'flex';
-
-            // Show video tab by default
-            switchTab('video');
         }
 
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
                 const selectedTab = tab.getAttribute('data-tab');
-                switchTab(selectedTab);
+                document.querySelectorAll('.section').forEach(section => {
+                    section.style.display = section.id === selectedTab ? 'flex' : 'none';
+                });
             });
         });
-
-        function switchTab(tab) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.style.display = 'none'; // Hide all sections
-            });
-            document.getElementById(tab).style.display = 'flex'; // Show the selected tab
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active'); // Highlight active tab
-        }
     </script>
 </body>
 </html>
