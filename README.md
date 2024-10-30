@@ -12,7 +12,7 @@ y2bro is a modern, user-friendly YouTube video downloader built with a focus on 
 
 ## How to Use 🚀
 
-1. Visit the y2bro website: [y2bro](https://parthsadaria.github.io/y2bro/)
+1. Visit the y2bro website: [y2bro](https://parthsadaria.github.io/Y2bro/))
 2. Enter the YouTube URL of the video you want to download.
 3. Click the "Download" button.
 4. Choose the desired format from the available options.
