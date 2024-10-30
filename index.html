@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y2bro - YouTube Video Downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            font-weight: 800;
+            background-color: #181818; /* Dark background */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 100px;
+            text-align: center;
+            margin:  0px;
+            color: #00bcd4; /* Bright cyan for the heading */
+        }
+
+        input, button {
+            padding: 16px;
+            margin: 12px 0;
+            width: 100%;
+            max-width: 400px;
+            background-color: #2c2c2c; /* Darker background for inputs/buttons */
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 12px;
+            transition: background-color 0.3s; /* Smooth color transition */
+        }
+
+        button {
+            background-color: #03a9f4; /* Light blue for the button */
+        }
+
+        button:hover {
+            background-color: #0288d1; /* Darker blue on hover */
+        }
+
+        .tabs {
+            display: none;
+            justify-content: center;
+            margin: 2rem 0; /* Space around tabs */
+        }
+
+        .tab {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background-color: #242424; /* Tab background */
+            color: #bbb; /* Light color for tab text */
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+        }
+
+        .tab.active {
+            background-color: #03a9f4; /* Highlight active tab */
+            color: #ffffff; /* White text for active tab */
+            border-color: #00bcd4; /* Cyan border for active tab */
+        }
+
+        #results {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .section {
+            background-color: #242424; /* Section background */
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0; /* Space between sections */
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            display: none; /* Start hidden */
+        }
+
+        .video-card img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .video-card h3 {
+            font-weight: 800;
+            margin: 0 0 0.5rem;
+            color: #00bcd4; /* Bright cyan for video title */
+        }
+
+        .video-card p {
+            margin: 0.5rem 0;
+            color: #bbb; /* Slightly lighter color for duration */
+        }
+
+        .download-options {
+            display: flex;
+            flex-wrap: wrap; /* Wrap to next line if necessary */
+            justify-content: center; /* Center the options */
+            margin-top: 1rem;
+        }
+
+        .download-option {
+            margin: 0.5rem;
+            background-color: #03a9f4; /* Light blue for download options */
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #ffffff;
+            text-align: center;
+            transition: background-color 0.3s; /* Smooth color transition */
+        }
+
+        .download-option:hover {
+            background-color: #0288d1; /* Darker blue on hover */
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: #bbb; /* Light grey for footer */
+        }
+        .loading {
+            display: none; /* Hidden by default */
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000; /* Above other content */
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            animation: spin 1s linear infinite; /* Animation */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Y2Bro</h1>
+    <h3 style="color: grey; margin-top: 0px;">By Parth Sadaria</h3>
+    <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL" />
+    <button id="fetchInfo">Download Video</button>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    <div class="tabs" id="tabs">
+        <div class="tab active" data-tab="video">Video Downloads</div>
+        <div class="tab" data-tab="audio">Audio Downloads</div>
+        <div class="tab" data-tab="other">Other Formats</div>
+    </div>
+
+    <div id="results">
+        <div class="section video-card" id="video" style="display: flex;">
+            <img id="videoThumbnail" src="" alt="Thumbnail" style="display:none;">
+            <h3 id="videoTitle">Video Title</h3>
+            <p id="videoDuration">Duration: </p>
+            <div class="download-options" id="videoOptions"></div>
+        </div>
+        
+        <div class="section" id="audio">
+            <h4>Download Audio:</h4>
+            <div class="download-options" id="audioOptions"></div>
+        </div>
+
+        <div class="section" id="other">
+            <h4>Other Formats:</h4>
+            <div class="download-options" id="otherOptions"></div>
+        </div>
+    </div>
+
+    <script>
+          function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        document.getElementById('fetchInfo').addEventListener('click', async () => {
+            const url = document.getElementById('youtubeUrl').value;
+            const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
+            showLoading();
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data.response);
+                } else {
+                    throw new Error(data.error || "Error fetching video info");
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        function displayResults(data) {
+            hideLoading()
+            document.getElementById('tabs').style.display = 'flex';
+            document.getElementById('videoThumbnail').src = data.thumbnailUrl;
+            document.getElementById('videoThumbnail').style.display = 'block'; // Show thumbnail
+            document.getElementById('videoTitle').textContent = data.title;
+            document.getElementById('videoDuration').textContent = "Duration: " + data.duration;
+
+            const videoOptions = document.getElementById('videoOptions');
+            videoOptions.innerHTML = data.formats.filter(format => format.ext === 'mp4' || format.ext == 'webm').map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
+                    ${format.ext.toUpperCase()} (${format.label})
+                </a>
+            `).join('');
+
+            const audioOptions = document.getElementById('audioOptions');
+            audioOptions.innerHTML = data.formats.filter(format => format.ext === 'mp3' || format.ext === 'aac' || format.ext === 'm4a' || format.ext === 'opus').map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
+                    ${format.ext.toUpperCase()} (${format.label})
+                </a>
+            `).join('');
+
+            const otherOptions = document.getElementById('otherOptions');
+            otherOptions.innerHTML = data.formats.filter(format => format.ext !== 'mp4' && format.ext !== 'mp3' && format.ext !== 'aac').map(format => `
+                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">
+                    ${format.ext.toUpperCase()} (${format.label})
+                </a>
+            `).join('');
+
+            // Show results section
+            document.getElementById('results').style.display = 'flex';
+
+            // Show video tab by default
+            switchTab('video');
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const selectedTab = tab.getAttribute('data-tab');
+                switchTab(selectedTab);
+            });
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none'; // Hide all sections
+            });
+            document.getElementById(tab).style.display = 'flex'; // Show the selected tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active'); // Highlight active tab
+        }
+    </script>
+</body>
+</html>
