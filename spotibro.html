@@ -59,6 +59,7 @@
     }
 
     input[type="text"] {
+    
       width: 100%;
       padding: 14px;
       border: none;
@@ -155,16 +156,15 @@
     <button onclick="fetchTrackInfo()" id="fetch-btn">Fetch Info</button>
     <p id="loading" class="loading">Loading...</p>
 
-    <div id="result" class="result">
-      <img id="cover-image" class="cover-img" src="" alt="Cover Image">
+    <div class="result" id="result" style="display: none; flex-direction: row; gap: 15px; align-items: flex-start;">
+      <img id="cover-image" class="cover-img" src="" alt="Cover Image" style="width: 150px; height: 150px; object-fit: cover;">
       <div class="track-info">
         <h2>Track Info</h2>
-        <div id="tracks-container"></div> <!-- Container for multiple tracks -->
-        <button id="download-btn" onclick="downloadTrack()" disabled>Download</button>
+        <div id="tracks-list"></div>
       </div>
     </div>
   </div>
-
+  
   <footer style="
     background-color: #1d1d1d; 
     color: #f0f0f0; 
@@ -178,85 +178,77 @@
   ">
     <p>
       Need a Youtube downloader too? Check out 
-      <a href="../" style="color: #d82121; text-decoration: none; font-weight: bold;">
+      <a href="spotibro.html" style="color: #d82121; text-decoration: none; font-weight: bold;">
         Y2Bro
       </a>
     </p>
   </footer>
 
   <script>
-    let downloadUrl = ''; // Declare downloadUrl for global access
-
     async function fetchTrackInfo() {
       const spotifyUrl = document.getElementById('spotify-url').value;
       const apiUrl = 'https://lokiai.netlify.app/.netlify/functions/yt-info?url=' + encodeURIComponent(spotifyUrl);
       const loadingText = document.getElementById('loading');
       const fetchButton = document.getElementById('fetch-btn');
-      const downloadButton = document.getElementById('download-btn');
-      const tracksContainer = document.getElementById('tracks-container');
-      
+
       loadingText.style.display = 'block';
       fetchButton.disabled = true;
-      downloadButton.disabled = true;
-      tracksContainer.innerHTML = ''; // Clear previous track info
 
       try {
         const response = await fetch(apiUrl);
         const data = await response.json();
         
-        if (data.apiResponse && data.apiResponse.data) {
-          const tracks = data.apiResponse.data;
-          let coverSet = false;
+        // Clear previous track info
+        document.getElementById('tracks-list').innerHTML = '';
 
-          tracks.forEach(track => {
+        if (data.response && data.response.tracks && data.response.tracks.length > 0) {
+          const firstTrack = data.response.tracks[0];
+          document.getElementById('cover-image').src = firstTrack.coverImageUrl || '';
+
+          data.response.tracks.forEach((track, index) => {
             const trackElement = document.createElement('div');
-            trackElement.classList.add('track-item');
-            
-            // Display each track's details
+            trackElement.className = 'track-details';
             trackElement.innerHTML = `
-              <p><strong>Track:</strong> ${track.name}</p>
-              <p><strong>Artist:</strong> ${track.artist}</p>
-              ${track.album_name ? `<p><strong>Album:</strong> ${track.album_name}</p>` : ''}
-              ${track.releaseDate ? `<p><strong>Release Date:</strong> ${track.releaseDate}</p>` : ''}
-              ${track.url ? `<a href="${track.url}" target="_blank">Listen on Spotify</a>` : ''}
+              <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
+              <p>Artist: ${track.artists}</p>
+              <p>Album: ${track.album || 'N/A'}</p>
+              <p>Release Date: ${track.releaseDate || 'N/A'}</p>
+              <a href="${track.spotifyUrl}" style ="text-decoration:none;"target="_blank">Listen on Spotify</a>
+              <button onclick="downloadSingleTrack('${track.trackId}')">Download</button>
             `;
-            
-            tracksContainer.appendChild(trackElement);
-
-            // Set cover image only once if available
-            if (!coverSet && track.cover_url) {
-              document.getElementById('cover-image').src = track.cover_url;
-              coverSet = true;
-            }
-
-            // Update download URL if available
-            if (track.downloadUrl) {
-              downloadUrl = track.downloadUrl;
-              downloadButton.disabled = false;
-            }
+            document.getElementById('tracks-list').appendChild(trackElement);
           });
 
-          // Show the result section if tracks were added
-          document.getElementById('result').style.display = tracks.length > 0 ? 'block' : 'none';
+          // Display the result section once data is fetched
+          document.getElementById('result').style.display = 'flex';
         } else {
-          alert('No track data found.');
+          alert('No track information found. Try a different URL.');
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while fetching the track information. Try Again Rizzler');
+        alert('An error occurred while fetching the track information. Try Again Rizzler.');
       } finally {
         loadingText.style.display = 'none';
         fetchButton.disabled = false;
       }
     }
 
-    async function downloadTrack() {
-      if (downloadUrl) {
-        window.location.href = downloadUrl;
-      } else {
-        alert('Download URL not available.');
+    async function downloadSingleTrack(trackId) {
+      const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?trackId=${trackId}`;
+      
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.response && data.response.downloadUrl) {
+          window.location.href = data.response.downloadUrl;
+        } else {
+          alert('Download URL not available for this track.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to fetch download link for this track.');
       }
     }
   </script>
 </body>
-</html>
