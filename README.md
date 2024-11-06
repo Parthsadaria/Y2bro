@@ -1,6 +1,8 @@
 # y2bro 🎥 - YouTube Video Downloader 💾
 
 y2bro is a modern, user-friendly YouTube video downloader built with a focus on simplicity and aesthetics. 🎨 This web application allows you to easily download videos and audio from YouTube in various formats.
+#Update!! 🥳
+1. Now Supports Spotify Too!!
 
 ## Features ✨
 
