@@ -105,10 +105,14 @@
   background-color: #282828;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: none;
+  display: flex;
   gap: 20px;
   text-align: left;
+  flex-direction: column;
+  max-height: 400px; /* Limit the height */
+  overflow-y: auto; /* Enable scrolling */
 }
+
 
 .track-container {
   display: flex;
@@ -249,7 +253,7 @@
   ">
     <p>
       Need a Youtube downloader too? Check out 
-      <a href="spotibro.html" style="color: #d82121; text-decoration: none; font-weight: bold;">
+      <a href="../" style="color: #d82121; text-decoration: none; font-weight: bold;">
         Y2Bro
       </a>
     </p>
@@ -273,39 +277,23 @@ async function fetchTrackInfo() {
         document.getElementById('tracks-list').innerHTML = '';
 
         if (data.response && data.response.tracks && data.response.tracks.length > 0) {
-            const firstTrack = data.response.tracks[0];
-            document.getElementById('cover-image').src = firstTrack.coverImageUrl || '';
+            const tracks = data.response.tracks;
+            document.getElementById('cover-image').src = tracks[0].coverImageUrl || ''; // Update cover image with first track's image
 
-            // Handle single track response (direct download button)
-            if (data.response.downloadUrl) {
+            // Loop through all tracks
+            tracks.forEach((track, index) => {
                 const trackElement = document.createElement('div');
                 trackElement.className = 'track-details';
                 trackElement.innerHTML = `
-                    <p><strong>Track:</strong> ${firstTrack.trackName}</p>
-                    <p>Artist: ${firstTrack.artists}</p>
-<button onclick="downloadTrack('${data.response.downloadUrl}')">Download</button>
-
+                    <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
+                    <p>Artist: ${track.artists}</p>
+                    <button onclick="downloadSingleTrack('${track.spotifyUrl}')">Download</button>
                 `;
                 document.getElementById('tracks-list').appendChild(trackElement);
-                
-                // Only show the result for single track
-                document.getElementById('result').style.display = 'flex';
-            } else {
-                // Multiple tracks handling for playlist
-                data.response.tracks.forEach((track, index) => {
-                    const trackElement = document.createElement('div');
-                    trackElement.className = 'track-details';
-                    trackElement.innerHTML = `
-                        <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
-                        <p>Artist: ${track.artists}</p>
-                        <button onclick="downloadSingleTrack('${track.spotifyUrl}')">Download</button>
-                    `;
-                    document.getElementById('tracks-list').appendChild(trackElement);
-                });
+            });
 
-                // Show the result for playlist with multiple tracks
-                document.getElementById('result').style.display = 'flex';
-            }
+            // Show the result for multiple tracks
+            document.getElementById('result').style.display = 'flex';
         } else {
             alert('No track information found. Try a different URL.');
         }
@@ -317,6 +305,7 @@ async function fetchTrackInfo() {
         fetchButton.disabled = false;
     }
 }
+
 async function downloadTrack(downloadUrl) {
   try {
     window.location.href = downloadUrl; // Trigger the download
