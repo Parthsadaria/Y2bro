@@ -100,50 +100,119 @@
     }
 
     .result {
-      margin-top: 35px;
-      padding: 25px;
-      background-color: #282828;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      display: none;
-      align-items: center;
-      gap: 20px;
-      text-align: left;
-    }
+  margin-top: 35px;
+  padding: 25px;
+  background-color: #282828;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: none;
+  gap: 20px;
+  text-align: left;
+}
 
-    .cover-img {
-      width: 200px;
-      height: 200px;
-      border-radius: 8px;
-      object-fit: cover;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+.track-container {
+  display: flex;
+  gap: 20px;
+}
 
-    .track-info {
-      display: flex;
-      flex-direction: column;
-    }
+.cover-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-    .track-info h2 {
-      margin-bottom: 12px;
-      color: #1ed760;
-      font-size: 24px;
-    }
+.track-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
 
-    .track-info p {
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
+.track-info h2 {
+  margin-bottom: 12px;
+  color: #1ed760;
+  font-size: 24px;
+}
 
-    @media (max-width: 768px) {
-      h1{
-        font-size: 60px;
-      }
-      .result {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
+.track-details {
+  background-color: #1d1d1d;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.track-details p {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.track-details button {
+  background-color: #1ed760;
+  color: #121212;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 0;
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .track-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .result {
+    padding: 15px;
+  }
+  
+  .cover-img {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 20px;
+  }
+  
+  .track-info {
+    width: 100%;
+  }
+  
+  .track-info h2 {
+    text-align: center;
+    font-size: 20px;
+  }
+  
+  .track-details {
+    padding: 15px;
+  }
+  
+  .track-details p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .result {
+    padding: 10px;
+    margin-top: 25px;
+  }
+  
+  .cover-img {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .track-details {
+    padding: 12px;
+  }
+  
+  .track-details button {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
   </style>
 </head>
 <body>
@@ -156,13 +225,15 @@
     <button onclick="fetchTrackInfo()" id="fetch-btn">Fetch Info</button>
     <p id="loading" class="loading">Loading...</p>
 
-    <div class="result" id="result" style="display: none; flex-direction: row; gap: 15px; align-items: flex-start;">
-      <img id="cover-image" class="cover-img" src="" alt="Cover Image" style="width: 150px; height: 150px; object-fit: cover;">
-      <div class="track-info">
-        <h2>Track Info</h2>
-        <div id="tracks-list"></div>
-      </div>
+ <div class="result" id="result" style="display: none;">
+  <div class="track-container">
+    <img id="cover-image" class="cover-img" src="" alt="Cover Image">
+    <div class="track-info">
+      <h2>Track Info</h2>
+      <div id="tracks-list"></div>
     </div>
+  </div>
+</div>
   </div>
   
   <footer style="
@@ -178,77 +249,99 @@
   ">
     <p>
       Need a Youtube downloader too? Check out 
-      <a href="../" style="color: #d82121; text-decoration: none; font-weight: bold;">
+      <a href="spotibro.html" style="color: #d82121; text-decoration: none; font-weight: bold;">
         Y2Bro
       </a>
     </p>
   </footer>
 
   <script>
-    async function fetchTrackInfo() {
-      const spotifyUrl = document.getElementById('spotify-url').value;
-      const apiUrl = 'https://lokiai.netlify.app/.netlify/functions/yt-info?url=' + encodeURIComponent(spotifyUrl);
-      const loadingText = document.getElementById('loading');
-      const fetchButton = document.getElementById('fetch-btn');
+async function fetchTrackInfo() {
+    const spotifyUrl = document.getElementById('spotify-url').value;
+    const apiUrl = 'https://lokiai.netlify.app/.netlify/functions/yt-info?url=' + encodeURIComponent(spotifyUrl);
+    const loadingText = document.getElementById('loading');
+    const fetchButton = document.getElementById('fetch-btn');
 
-      loadingText.style.display = 'block';
-      fetchButton.disabled = true;
+    loadingText.style.display = 'block';
+    fetchButton.disabled = true;
 
-      try {
+    try {
         const response = await fetch(apiUrl);
         const data = await response.json();
-        
+
         // Clear previous track info
         document.getElementById('tracks-list').innerHTML = '';
 
         if (data.response && data.response.tracks && data.response.tracks.length > 0) {
-          const firstTrack = data.response.tracks[0];
-          document.getElementById('cover-image').src = firstTrack.coverImageUrl || '';
+            const firstTrack = data.response.tracks[0];
+            document.getElementById('cover-image').src = firstTrack.coverImageUrl || '';
 
-          data.response.tracks.forEach((track, index) => {
-            const trackElement = document.createElement('div');
-            trackElement.className = 'track-details';
-            trackElement.innerHTML = `
-              <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
-              <p>Artist: ${track.artists}</p>
-              <p>Album: ${track.album || 'N/A'}</p>
-              <p>Release Date: ${track.releaseDate || 'N/A'}</p>
-              <a href="${track.spotifyUrl}" style ="text-decoration:none;"target="_blank">Listen on Spotify</a>
-              <button onclick="downloadSingleTrack('${track.trackId}')">Download</button>
-            `;
-            document.getElementById('tracks-list').appendChild(trackElement);
-          });
+            // Handle single track response (direct download button)
+            if (data.response.downloadUrl) {
+                const trackElement = document.createElement('div');
+                trackElement.className = 'track-details';
+                trackElement.innerHTML = `
+                    <p><strong>Track:</strong> ${firstTrack.trackName}</p>
+                    <p>Artist: ${firstTrack.artists}</p>
+<button onclick="downloadTrack('${data.response.downloadUrl}')">Download</button>
 
-          // Display the result section once data is fetched
-          document.getElementById('result').style.display = 'flex';
+                `;
+                document.getElementById('tracks-list').appendChild(trackElement);
+                
+                // Only show the result for single track
+                document.getElementById('result').style.display = 'flex';
+            } else {
+                // Multiple tracks handling for playlist
+                data.response.tracks.forEach((track, index) => {
+                    const trackElement = document.createElement('div');
+                    trackElement.className = 'track-details';
+                    trackElement.innerHTML = `
+                        <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
+                        <p>Artist: ${track.artists}</p>
+                        <button onclick="downloadSingleTrack('${track.spotifyUrl}')">Download</button>
+                    `;
+                    document.getElementById('tracks-list').appendChild(trackElement);
+                });
+
+                // Show the result for playlist with multiple tracks
+                document.getElementById('result').style.display = 'flex';
+            }
         } else {
-          alert('No track information found. Try a different URL.');
+            alert('No track information found. Try a different URL.');
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while fetching the track information. Try Again Rizzler.');
-      } finally {
+    } finally {
         loadingText.style.display = 'none';
         fetchButton.disabled = false;
-      }
     }
+}
+async function downloadTrack(downloadUrl) {
+  try {
+    window.location.href = downloadUrl; // Trigger the download
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to fetch download link for this track.');
+  }
+}
 
-    async function downloadSingleTrack(trackId) {
-      const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?trackId=${trackId}`;
-      
-      try {
+async function downloadSingleTrack(trackId) {
+    const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${trackId}`;
+    
+    try {
         const response = await fetch(apiUrl);
         const data = await response.json();
 
         if (data.response && data.response.downloadUrl) {
-          window.location.href = data.response.downloadUrl;
+            window.location.href = data.response.downloadUrl;
         } else {
-          alert('Download URL not available for this track.');
+            alert('Download URL not available for this track.');
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error:', error);
         alert('Failed to fetch download link for this track.');
-      }
     }
-  </script>
+}
+  </script>  
 </body>
