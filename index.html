@@ -3,311 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y2bro - All in One Downloader </title>
+    <title>Y2bro - All in One Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* Custom styles */
         body {
-            font-family: 'Inter', Arial, sans-serif;
-            font-weight: 800;
-            background-color: #181818; /* Dark background */
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+            /* Apply a subtle gradient background */
+            background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
         }
 
-        h1 {
-            font-size: 100px;
-            text-align: center;
-            margin: 0;
-            color: #00bcd4; /* Bright cyan for the heading */
+        /* Add transition for smooth appearance */
+        #results-container {
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            opacity: 0;
+            transform: translateY(20px); /* Start slightly lower */
         }
 
-        h3 {
-            color: grey;
-            margin: 0.5rem 0; /* Space around subtitle */
+        #results-container.visible {
+            opacity: 1;
+            transform: translateY(0); /* Move to original position */
         }
 
-        input, button {
-            padding: 16px;
-            margin: 12px 0;
-            width: 100%;
-            max-width: 400px;
-            background-color: #2c2c2c; /* Darker background for inputs/buttons */
-            border: none;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 800;
-            border-radius: 12px;
-            transition: background-color 0.3s; /* Smooth color transition */
-        }
-
-        button {
-            background-color: #03a9f4; /* Light blue for the button */
-        }
-
-        button:hover {
-            background-color: #0288d1; /* Darker blue on hover */
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin: 2rem 0; /* Space around tabs */
-        }
-
-        .tab {
-            padding: 10px 20px;
-            margin: 0 5px;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            background-color: #242424; /* Tab background */
-            color: #bbb; /* Light color for tab text */
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
-        }
-
-        .tab.active {
-            background-color: #03a9f4; /* Highlight active tab */
-            color: #ffffff; /* White text for active tab */
-            border-color: #00bcd4; /* Cyan border for active tab */
-        }
-
-        #results {
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .section {
-            background-color: #242424; /* Section background */
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1rem 0; /* Space between sections */
-            width: 100%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-        }
-
-        .video-card img {
-            width: 100%;
-            max-width: 300px;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .video-card h3 {
-            font-weight: 800;
-            margin: 0 0 0.5rem;
-            color: #00bcd4; /* Bright cyan for video title */
-        }
-
-        .video-card p {
-            margin: 0.5rem 0;
-            color: #bbb; /* Slightly lighter color for duration */
-        }
-
-        .download-options {
-            display: flex;
-            flex-wrap: wrap; /* Wrap to next line if necessary */
-            justify-content: center; /* Center the options */
-            margin-top: 1rem;
-        }
-
-        .download-option {
-            margin: 0.5rem;
-            background-color: #03a9f4; /* Light blue for download options */
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #ffffff;
-            text-align: center;
-            transition: background-color 0.3s; /* Smooth color transition */
-        }
-
-        .download-option:hover {
-            background-color: #0288d1; /* Darker blue on hover */
-        }
-
-        footer {
-            margin-top: 2rem;
-            color: #bbb; /* Light grey for footer */
-        }
-
-        .loading {
-            display: none; /* Hidden by default */
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000; /* Above other content */
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 8px solid #f3f3f3; /* Light grey */
-            border-top: 8px solid #3498db; /* Blue */
-            border-radius: 50%;
-            animation: spin 1s linear infinite; /* Animation */
-        }
-
+        /* Custom spinner animation */
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .spinner {
+            width: 40px; /* Slightly smaller spinner */
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2); /* Lighter border */
+            border-top: 4px solid #0891b2; /* Accent color (cyan-600) */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Style for the custom alert/message box */
+        #message-box {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
     </style>
+    <script>
+        // Tailwind configuration (optional, for theme customization)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Define custom dark theme colors
+                        'dark-bg': '#111827', // gray-900
+                        'dark-card': '#1f2937', // gray-800
+                        'dark-border': '#374151', // gray-700
+                        'dark-text': '#d1d5db', // gray-300
+                        'dark-heading': '#f9fafb', // gray-50
+                        'accent': '#0891b2', // cyan-600
+                        'accent-hover': '#06b6d4', // cyan-500
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <h1>Y2Bro</h1>
-    <h3>By Parth Sadaria</h3>
-    <input type="text" id="youtubeUrl" placeholder="Enter YouTube/Instagram URL" />
-    <button id="fetchInfo">Download Video</button>
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-    </div>
-    <div class="tabs" id="tabs">
-        <div class="tab active" data-tab="video">Video Downloads</div>
-        <div class="tab" data-tab="audio">Audio Downloads</div>
-        <div class="tab" data-tab="other">Other Formats</div>
-    </div>
+<body class="bg-dark-bg text-dark-text min-h-screen flex flex-col items-center justify-center p-4 selection:bg-accent selection:text-white">
 
-    <div id="results">
-        <div class="section video-card" id="video" style="display: flex;">
-            <img id="videoThumbnail" src="" alt="Thumbnail" style="display:none;">
-            <h3 id="videoTitle">Video Title</h3>
-            <p id="videoDuration">Duration: </p>
-            <div class="download-options" id="videoOptions"></div>
-        </div>
-        
-        <div class="section" id="audio">
-            <h4>Download Audio:</h4>
-            <div class="download-options" id="audioOptions"></div>
+    <div class="w-full max-w-2xl flex flex-col items-center space-y-6">
+        <div class="text-center">
+            <h1 class="text-5xl sm:text-6xl md:text-7xl font-extrabold text-accent mb-1">Y2Bro</h1>
+            <h3 class="text-sm text-gray-500 font-semibold">By Parth Sadaria</h3>
         </div>
 
-        <div class="section" id="other">
-            <h4>Other Formats:</h4>
-            <div class="download-options" id="otherOptions"></div>
+        <div class="w-full flex flex-col sm:flex-row items-center gap-3">
+            <input type="text" id="youtubeUrl" placeholder="Enter YouTube/Instagram URL" class="flex-grow w-full px-4 py-3 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder-gray-500 text-white transition duration-200" />
+            <button id="fetchInfo" class="w-full sm:w-auto px-6 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-bg transition duration-200 whitespace-nowrap">
+                Get Video
+            </button>
         </div>
-    </div>
-<footer style="
-  background-color: #1d1d1d; 
-  color: #f0f0f0; 
-  padding: 20px 0; 
-  text-align: center; 
-  position: fixed; 
-  width: 100%; 
-  bottom: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-">
-  <p>
-    Need a Spotify downloader too? Check out 
-    <a href="spotibro.html" style="color: #1ed760; text-decoration: none; font-weight: bold;">
-      SpotiBro
-    </a>
-  </p>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invisible Image Example</title>
-</head>
-<body>
-    <!-- Invisible Image -->
-    <img 
-        src="https://camo.githubusercontent.com/02478839fd6c30b01accd3eb2571d1aa39fd098efc4192d7326b5332732318d4/68747470733a2f2f6b6f6d617265762e636f6d2f67687076632f3f757365726e616d653d506172746873616461726961267374796c653d666f722d7468652d6261646765" 
-        style="display: none;" 
-        alt="Invisible Tracker"
-    />
 
-</body>
-</html>
-</footer>
+        <div id="loading" class="hidden justify-center items-center py-4">
+            <div class="spinner"></div>
+            <span class="ml-3 text-gray-400">Fetching info...</span>
+        </div>
+
+        <div id="message-box" class="fixed top-5 right-5 bg-red-600 text-white p-4 rounded-lg shadow-lg hidden opacity-0 transform translate-y-[-20px]" role="alert">
+            <span id="message-text"></span>
+            <button onclick="hideMessage()" class="ml-4 font-bold">&times;</button>
+        </div>
+
+        <div id="results-container" class="w-full space-y-6 opacity-0"> <div id="tabs" class="flex justify-center border-b border-dark-border">
+                <button class="tab py-3 px-4 text-gray-400 border-b-2 border-transparent hover:text-accent hover:border-accent transition duration-200 active" data-tab="video">Video</button>
+                <button class="tab py-3 px-4 text-gray-400 border-b-2 border-transparent hover:text-accent hover:border-accent transition duration-200" data-tab="audio">Audio</button>
+                <button class="tab py-3 px-4 text-gray-400 border-b-2 border-transparent hover:text-accent hover:border-accent transition duration-200" data-tab="other">Other</button>
+            </div>
+
+            <div id="results" class="w-full">
+                <div class="tab-content section bg-dark-card rounded-lg p-5 shadow-md" id="video">
+                    <div class="flex flex-col md:flex-row gap-5 items-center md:items-start">
+                        <img id="videoThumbnail" src="https://placehold.co/300x169/1f2937/374151?text=Thumbnail" alt="Thumbnail" class="w-full md:w-1/3 max-w-[300px] rounded-lg object-cover hidden">
+                        <div class="flex-grow text-center md:text-left">
+                            <h3 id="videoTitle" class="text-xl font-bold text-dark-heading mb-2">Video Title</h3>
+                            <p id="videoDuration" class="text-sm text-gray-400 mb-4">Duration: N/A</p>
+                            <h4 class="text-md font-semibold text-gray-300 mb-3">Download Options:</h4>
+                            <div id="videoOptions" class="flex flex-wrap justify-center md:justify-start gap-2">
+                                <span class="text-gray-500 text-sm">No video formats available yet.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content section bg-dark-card rounded-lg p-5 shadow-md hidden" id="audio">
+                    <h4 class="text-md font-semibold text-gray-300 mb-3 text-center">Download Audio:</h4>
+                    <div id="audioOptions" class="flex flex-wrap justify-center gap-2">
+                        <span class="text-gray-500 text-sm">No audio formats available yet.</span>
+                    </div>
+                </div>
+
+                <div class="tab-content section bg-dark-card rounded-lg p-5 shadow-md hidden" id="other">
+                    <h4 class="text-md font-semibold text-gray-300 mb-3 text-center">Other Formats:</h4>
+                    <div id="otherOptions" class="flex flex-wrap justify-center gap-2">
+                        <span class="text-gray-500 text-sm">No other formats available yet.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <footer class="w-full bg-gray-900 text-gray-400 py-4 text-center mt-12 text-sm fixed bottom-0 left-0">
+        Need a Spotify downloader too? Check out
+        <a href="#" onclick="alert('SpotiBro page not implemented yet!'); return false;" class="text-green-500 hover:text-green-400 font-semibold transition duration-200">
+            SpotiBro
+        </a>
+        <img src="https://camo.githubusercontent.com/02478839fd6c30b01accd3eb2571d1aa39fd098efc4192d7326b5332732318d4/68747470733a2f2f6b6f6d617265762e636f6d2f67687076632f3f757365726e616d653d506172746873616461726961267374796c653d666f722d7468652d6261646765" style="display: none;" alt="Invisible Tracker"/>
+    </footer>
 
     <script>
+        // DOM Elements
+        const fetchButton = document.getElementById('fetchInfo');
+        const urlInput = document.getElementById('youtubeUrl');
+        const loadingIndicator = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const tabsContainer = document.getElementById('tabs');
+        const videoThumbnail = document.getElementById('videoThumbnail');
+        const videoTitle = document.getElementById('videoTitle');
+        const videoDuration = document.getElementById('videoDuration');
+        const videoOptionsDiv = document.getElementById('videoOptions');
+        const audioOptionsDiv = document.getElementById('audioOptions');
+        const otherOptionsDiv = document.getElementById('otherOptions');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+
+        // --- Loading Indicator ---
         function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
+            loadingIndicator.classList.remove('hidden');
+            loadingIndicator.classList.add('flex'); // Use flex for alignment
+            fetchButton.disabled = true; // Disable button while loading
+            fetchButton.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
         function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
+            loadingIndicator.classList.add('hidden');
+            loadingIndicator.classList.remove('flex');
+            fetchButton.disabled = false; // Re-enable button
+            fetchButton.classList.remove('opacity-50', 'cursor-not-allowed');
         }
 
-        document.getElementById('fetchInfo').addEventListener('click', async () => {
-            const url = document.getElementById('youtubeUrl').value;
+        // --- Message Box ---
+        function showMessage(message, isError = true) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden', 'opacity-0', 'translate-y-[-20px]');
+            messageBox.classList.add('opacity-100', 'translate-y-0');
+            messageBox.classList.toggle('bg-red-600', isError); // Red for errors
+            messageBox.classList.toggle('bg-green-600', !isError); // Green for success (optional)
+
+            // Auto-hide after 5 seconds
+            setTimeout(hideMessage, 5000);
+        }
+
+        function hideMessage() {
+            messageBox.classList.add('opacity-0', 'translate-y-[-20px]');
+            // Wait for transition to finish before hiding completely
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 300); // Match transition duration
+        }
+
+
+        // --- Fetch Data ---
+        fetchButton.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
             let apiUrl;
 
-            // Check if the URL is for YouTube or Instagram
-            if (url.includes("youtube.com") || url.includes("youtu.be")) {
-                apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
-            } else if (url.includes("instagram.com")) {
+            // Basic URL validation
+            if (!url) {
+                showMessage("Please enter a URL.");
+                return;
+            }
+
+            // Check if the URL is for YouTube or Instagram (adjust regex/checks as needed)
+            // Note: Using googleusercontent.com URLs might be unreliable or specific to certain proxies.
+            // A more robust check would involve parsing the hostname.
+            const isYoutube = url.includes("youtube.com") || url.includes("youtu.be") || url.includes("googleusercontent.com/youtube");
+            const isInstagram = url.includes("instagram.com");
+
+            if (isYoutube || isInstagram) {
+                 // Using the provided Netlify function URL
                 apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(url)}`;
             } else {
-                alert("Please enter a valid YouTube or Instagram URL.");
+                showMessage("Please enter a valid YouTube or Instagram URL.");
                 return;
             }
 
             showLoading();
+            // Hide previous results smoothly
+            resultsContainer.classList.remove('visible');
+            // Reset previous results content
+            resetResults();
+
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
-                if (response.ok) {
+                if (response.ok && data.response) { // Check if response structure is as expected
                     displayResults(data.response);
+                    // Show results container smoothly
+                    resultsContainer.classList.add('visible');
                 } else {
-                    throw new Error(data.error || "Error fetching video info");
+                    // Handle API errors or unexpected structure
+                    throw new Error(data.error || "Error fetching video info. Invalid response from server.");
                 }
             } catch (error) {
-                alert("Error: " + error.message);
+                console.error("Fetch Error:", error);
+                showMessage("Error: " + error.message);
+                // Ensure results remain hidden on error
+                 resultsContainer.classList.remove('visible');
+            } finally {
+                hideLoading(); // Always hide loading indicator
             }
         });
 
-        function displayResults(data) {
-            hideLoading();
-            document.getElementById('tabs').style.display = 'flex';
-            document.getElementById('videoThumbnail').src = data.thumbnailUrl || '';
-            document.getElementById('videoThumbnail').style.display = 'block'; // Show thumbnail
-            document.getElementById('videoTitle').textContent = data.title || 'N/A';
-            document.getElementById('videoDuration').textContent = "Duration: " + (data.duration || 'N/A');
-
-            const videoOptions = document.getElementById('videoOptions');
-            videoOptions.innerHTML = data.formats?.filter(format => format.ext === 'mp4' || format.ext === 'webm'||format.ext === undefined).map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
-            `).join('') || 'No video formats available.';
-
-            const audioOptions = document.getElementById('audioOptions');
-            audioOptions.innerHTML = data.formats?.filter(format => format.ext === 'mp3' || format.ext === 'wav').map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
-            `).join('') || 'No audio formats available.';
-
-            const otherOptions = document.getElementById('otherOptions');
-            otherOptions.innerHTML = data.formats?.filter(format => format.ext !== 'mp4' && format.ext !== 'mp3' && format.ext !== 'wav').map(format => `
-                <a class="download-option" href="${format.url}" download="${data.title}.${format.ext}">${format.quality || format.height} - ${format.ext || 'video'}</a>
-            `).join('') || 'No other formats available.';
-
-            document.getElementById('results').style.display = 'flex';
+         // --- Reset Results ---
+        function resetResults() {
+            videoThumbnail.src = 'https://placehold.co/300x169/1f2937/374151?text=Thumbnail'; // Reset placeholder
+            videoThumbnail.classList.add('hidden'); // Hide initially
+            videoTitle.textContent = 'Video Title';
+            videoDuration.textContent = 'Duration: N/A';
+            videoOptionsDiv.innerHTML = '<span class="text-gray-500 text-sm">No video formats available yet.</span>';
+            audioOptionsDiv.innerHTML = '<span class="text-gray-500 text-sm">No audio formats available yet.</span>';
+            otherOptionsDiv.innerHTML = '<span class="text-gray-500 text-sm">No other formats available yet.</span>';
+             // Reset to the first tab
+            switchTab(tabs[0]);
         }
 
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
 
-                const selectedTab = tab.getAttribute('data-tab');
-                document.querySelectorAll('.section').forEach(section => {
-                    section.style.display = section.id === selectedTab ? 'flex' : 'none';
-                });
+        // --- Display Results ---
+        function displayResults(data) {
+            // Basic check if data seems valid
+            if (!data || typeof data !== 'object') {
+                showMessage("Received invalid data from the server.");
+                resultsContainer.classList.remove('visible'); // Hide results area
+                return;
+            }
+
+            // Update Thumbnail
+            if (data.thumbnailUrl) {
+                 videoThumbnail.src = data.thumbnailUrl;
+                 videoThumbnail.classList.remove('hidden'); // Show thumbnail
+                 videoThumbnail.onerror = () => { // Fallback if image fails to load
+                    videoThumbnail.src = 'https://placehold.co/300x169/1f2937/374151?text=Thumbnail+Error';
+                 }
+            } else {
+                 videoThumbnail.classList.add('hidden'); // Keep hidden if no URL
+            }
+
+            // Update Title and Duration
+            videoTitle.textContent = data.title || 'N/A';
+            videoDuration.textContent = "Duration: " + (data.duration || 'N/A');
+
+            // Helper to create download links
+            const createDownloadLink = (format, title) => {
+                // Basic validation for format object
+                if (!format || !format.url) return '';
+
+                const quality = format.quality || format.height || format.abr || 'Unknown'; // Combine quality indicators
+                const ext = format.ext || 'file'; // Default extension
+                const fileSize = format.filesize ? `(${(format.filesize / 1024 / 1024).toFixed(2)} MB)` : ''; // Calculate MB if available
+                const label = `${quality} ${ext.toUpperCase()} ${fileSize}`;
+                const safeTitle = (title || 'download').replace(/[^a-zA-Z0-9_]/g, '_'); // Sanitize title for filename
+
+                return `
+                    <a class="download-option inline-block bg-accent text-white text-xs font-semibold px-3 py-1.5 rounded-md hover:bg-accent-hover transition duration-200 whitespace-nowrap"
+                       href="${format.url}"
+                       download="${safeTitle}.${ext}"
+                       target="_blank" rel="noopener noreferrer"> ${label}
+                    </a>`;
+            };
+
+            // Filter and generate download links
+            const formats = Array.isArray(data.formats) ? data.formats : [];
+            const videoFormats = formats.filter(f => (f.vcodec && f.vcodec !== 'none') || (f.ext && ['mp4', 'webm', 'mov', 'avi'].includes(f.ext.toLowerCase()))); // More robust video check
+            const audioFormats = formats.filter(f => (f.acodec && f.acodec !== 'none' && (!f.vcodec || f.vcodec === 'none')) || (f.ext && ['mp3', 'm4a', 'ogg', 'wav', 'opus'].includes(f.ext.toLowerCase()))); // More robust audio check
+            const otherFormats = formats.filter(f => !videoFormats.includes(f) && !audioFormats.includes(f));
+
+            videoOptionsDiv.innerHTML = videoFormats.length ? videoFormats.map(f => createDownloadLink(f, data.title)).join('') : '<span class="text-gray-500 text-sm">No video formats available.</span>';
+            audioOptionsDiv.innerHTML = audioFormats.length ? audioFormats.map(f => createDownloadLink(f, data.title)).join('') : '<span class="text-gray-500 text-sm">No audio formats available.</span>';
+            otherOptionsDiv.innerHTML = otherFormats.length ? otherFormats.map(f => createDownloadLink(f, data.title)).join('') : '<span class="text-gray-500 text-sm">No other formats available.</span>';
+
+             // Ensure the results container is visible after population
+            resultsContainer.classList.add('visible');
+             // Default to the video tab being active
+            switchTab(tabs[0]);
+        }
+
+        // --- Tab Switching Logic ---
+         function switchTab(clickedTab) {
+            tabs.forEach(t => t.classList.remove('active', 'text-accent', 'border-accent'));
+            clickedTab.classList.add('active', 'text-accent', 'border-accent');
+
+            const selectedTabId = clickedTab.getAttribute('data-tab');
+
+            tabContents.forEach(content => {
+                if (content.id === selectedTabId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
             });
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab));
         });
+
+         // Initial setup: Reset results and hide container
+        resetResults();
+        resultsContainer.classList.remove('visible');
+
+
     </script>
 </body>
 </html>
