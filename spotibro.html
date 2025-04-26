@@ -1,350 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpotiBro - Spotify Downloader</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      transition: 400ms ease;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotiBro - Spotify Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Dark background similar to Spotify */
+            background-color: #121212;
+        }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      background-color: #121212;
-      color: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      max-width: 600px;
-      width: 90%;
-      padding: 40px;
-      background-color: #1d1d1d;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 30px;
-      color: #1ed760;
-      font-size: 80px;
-    }
-
-    h3 {
-      margin-bottom: 20px;
-      color: #999999;
-      font-size: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 12px;
-      color: #1ed760;
-      font-size: 18px;
-    }
-
-    input[type="text"] {
-    
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 6px;
-      background-color: #282828;
-      color: #f0f0f0;
-      font-size: 16px;
-    }
-
-    button {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      background-color: #1ed760;
-      color: #121212;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 900;
-      transition: background-color 0.3s ease;
-      margin-bottom: 15px;
-    }
-
-    button:disabled {
-      background-color: #666;
-      cursor: not-allowed;
-    }
-
-    button:hover:enabled {
-      background-color: #1aa34a;
-    }
-
-    .loading {
-      display: none;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-
-    .result {
-  margin-top: 35px;
-  padding: 25px;
-  background-color: #282828;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  gap: 20px;
-  text-align: left;
-  flex-direction: column;
-  max-height: 400px; /* Limit the height */
-  overflow-y: auto; /* Enable scrolling */
-}
+        /* Add transition for smooth appearance of results */
+        #results-container {
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            opacity: 0;
+            transform: translateY(20px); /* Start slightly lower */
+            max-height: 60vh; /* Limit height to prevent excessive page length */
+            overflow-y: auto; /* Enable scrolling within the container */
+             /* Custom scrollbar styling (optional) */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #1DB954 #282828; /* Firefox: thumb track */
+        }
+         /* Webkit scrollbar styling (Chrome, Safari) */
+        #results-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #results-container::-webkit-scrollbar-track {
+            background: #282828;
+            border-radius: 10px;
+        }
+        #results-container::-webkit-scrollbar-thumb {
+            background-color: #1DB954;
+            border-radius: 10px;
+            border: 2px solid #282828; /* Creates padding around thumb */
+        }
 
 
-.track-container {
-  display: flex;
-  gap: 20px;
-}
+        #results-container.visible {
+            opacity: 1;
+            transform: translateY(0); /* Move to original position */
+        }
 
-.cover-img {
-  width: 200px;
-  height: 200px;
-  border-radius: 8px;
-  object-fit: cover;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+        /* Custom spinner animation using Spotify green */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 32px; /* Slightly smaller spinner */
+            height: 32px;
+            border: 4px solid rgba(255, 255, 255, 0.2); /* Lighter border */
+            border-top: 4px solid #1DB954; /* Spotify green */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-.track-info {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
+        /* Style for the custom alert/message box */
+        #message-box {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 50; /* Ensure it's above other content */
+        }
 
-.track-info h2 {
-  margin-bottom: 12px;
-  color: #1ed760;
-  font-size: 24px;
-}
+        /* Input focus style */
+         input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #1DB954; /* Spotify green ring on focus */
+         }
 
-.track-details {
-  background-color: #1d1d1d;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-}
-
-.track-details p {
-  margin-bottom: 12px;
-  font-size: 16px;
-}
-
-.track-details button {
-  background-color: #1ed760;
-  color: #121212;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-bottom: 0;
-  width: auto;
-}
-
-@media (max-width: 768px) {
-  .track-container {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .result {
-    padding: 15px;
-  }
-  
-  .cover-img {
-    width: 150px;
-    height: 150px;
-    margin-bottom: 20px;
-  }
-  
-  .track-info {
-    width: 100%;
-  }
-  
-  .track-info h2 {
-    text-align: center;
-    font-size: 20px;
-  }
-  
-  .track-details {
-    padding: 15px;
-  }
-  
-  .track-details p {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  h1{
-    font-size:70px;
-  }
-  .result {
-    padding: 10px;
-    margin-top: 25px;
-  }
-  
-  .cover-img {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .track-details {
-    padding: 12px;
-  }
-  
-  .track-details button {
-    width: 100%;
-    margin-top: 10px;
-  }
-}
-@media (max-width: 380px) {
-    h1{
-    font-size:50px;
-  }
-  
-}
-  </style>
+    </style>
+    <script>
+        // Tailwind configuration (optional, for theme customization)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Define custom Spotify-like theme colors
+                        'spotify-dark': '#121212',
+                        'spotify-card': '#1d1d1d', // Slightly lighter card bg
+                        'spotify-card-hover': '#282828', // Hover for cards
+                        'spotify-text': '#b3b3b3', // Lighter grey text
+                        'spotify-heading': '#ffffff', // White headings
+                        'spotify-green': '#1DB954',
+                        'spotify-green-hover': '#1ED760',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    fontWeight: {
+                        'extrabold': 800, // Adjust if needed
+                        'black': 900,
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-  <div class="container">
-    <h1>SpotiBro</h1>
-    <h3>by Parth Sadaria</h3>
-    <div class="form-group">
-      <input type="text" id="spotify-url" placeholder="Enter Spotify URL">
-    </div>
-    <button onclick="fetchTrackInfo()" id="fetch-btn">Fetch Info</button>
-    <p id="loading" class="loading">Loading...</p>
+<body class="bg-spotify-dark text-spotify-text min-h-screen flex flex-col items-center justify-center p-4 selection:bg-spotify-green selection:text-black">
 
- <div class="result" id="result" style="display: none;">
-  <div class="track-container">
-    <img id="cover-image" class="cover-img" src="" alt="Cover Image">
-    <div class="track-info">
-      <h2>Track Info</h2>
-      <div id="tracks-list"></div>
-    </div>
-  </div>
-</div>
-  </div>
-  
-  <footer style="
-    background-color: #1d1d1d; 
-    color: #f0f0f0; 
-    padding: 20px 0; 
-    text-align: center; 
-    position: fixed; 
-    width: 100%; 
-    bottom: 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-  ">
-    <p>
-      Need a Youtube downloader too? Check out 
-      <a href="./" style="color: #d82121; text-decoration: none; font-weight: bold;">
-        Y2Bro
-      </a>
-    </p>
-        <img 
-        src="https://camo.githubusercontent.com/02478839fd6c30b01accd3eb2571d1aa39fd098efc4192d7326b5332732318d4/68747470733a2f2f6b6f6d617265762e636f6d2f67687076632f3f757365726e616d653d506172746873616461726961267374796c653d666f722d7468652d6261646765" 
-        style="display: none;" 
-    />
-  </footer>
+    <div class="w-full max-w-xl flex flex-col items-center space-y-6">
+        <div class="text-center">
+            <h1 class="text-5xl sm:text-6xl md:text-7xl font-black text-spotify-green mb-1">SpotiBro</h1>
+            <h3 class="text-sm text-gray-500 font-semibold">By Parth Sadaria</h3>
+        </div>
 
-  <script>
-async function fetchTrackInfo() {
-    const spotifyUrl = document.getElementById('spotify-url').value;
-    const apiUrl = 'https://lokiai.netlify.app/.netlify/functions/yt-info?url=' + encodeURIComponent(spotifyUrl);
-    const loadingText = document.getElementById('loading');
-    const fetchButton = document.getElementById('fetch-btn');
+        <div class="w-full flex flex-col sm:flex-row items-center gap-3">
+            <input type="text" id="spotify-url" placeholder="Enter Spotify Track/Playlist/Album URL" class="flex-grow w-full px-4 py-3 bg-spotify-card-hover border border-transparent rounded-lg placeholder-gray-500 text-white transition duration-200" />
+            <button id="fetch-btn" class="w-full sm:w-auto px-6 py-3 bg-spotify-green text-spotify-dark font-bold rounded-full hover:bg-spotify-green-hover focus:outline-none focus:ring-2 focus:ring-spotify-green focus:ring-offset-2 focus:ring-offset-spotify-dark transition duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                Fetch Info
+            </button>
+        </div>
 
-    loadingText.style.display = 'block';
-    fetchButton.disabled = true;
+        <div id="loading" class="hidden justify-center items-center py-4">
+            <div class="spinner"></div>
+            <span class="ml-3 text-gray-400">Rizzing up the info... 😎</span>
+        </div>
 
-    try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+        <div id="message-box" class="fixed top-5 right-5 bg-red-600 text-white p-4 rounded-lg shadow-lg hidden opacity-0 transform translate-y-[-20px]" role="alert">
+            <span id="message-text"></span>
+            <button onclick="hideMessage()" class="ml-4 font-bold">×</button>
+        </div>
 
-        // Clear previous track info
-        document.getElementById('tracks-list').innerHTML = '';
+        <div id="results-container" class="w-full bg-spotify-card rounded-lg p-5 shadow-lg opacity-0 space-y-4">
+            <div class="flex flex-col md:flex-row gap-5 items-center md:items-start">
+                 <img id="cover-image" src="https://placehold.co/200x200/1d1d1d/282828?text=Cover+Art" alt="Cover Image" class="w-full md:w-1/4 max-w-[150px] md:max-w-[200px] rounded-lg object-cover shadow-md hidden self-center md:self-start">
+                <div class="flex-grow w-full">
+                    <h2 class="text-xl font-bold text-spotify-heading mb-3 text-center md:text-left">Tracks Found</h2>
+                    <div id="tracks-list" class="space-y-3">
+                        <p class="text-center text-gray-500">Enter a URL to see tracks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        if (data.response && data.response.tracks && data.response.tracks.length > 0) {
-            const tracks = data.response.tracks;
-            document.getElementById('cover-image').src = tracks[0].coverImageUrl || ''; // Update cover image with first track's image
+    </div> <footer class="w-full bg-black text-gray-400 py-3 text-center mt-12 text-xs fixed bottom-0 left-0 z-10">
+         Need a YouTube downloader too? Check out
+        <a href="./" class="text-red-500 hover:text-red-400 font-semibold transition duration-200">
+             Y2Bro
+        </a>
+        <img src="https://camo.githubusercontent.com/02478839fd6c30b01accd3eb2571d1aa39fd098efc4192d7326b5332732318d4/68747470733a2f2f6b6f6d617265762e636f6d2f67687076632f3f757365726e616d653d506172746873616461726961267374796c653d666f722d7468652d6261646765" style="display: none;" alt="Invisible Tracker"/>
+    </footer>
 
-            // Loop through all tracks
+    <script>
+        // DOM Elements
+        const fetchButton = document.getElementById('fetch-btn');
+        const urlInput = document.getElementById('spotify-url');
+        const loadingIndicator = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const coverImage = document.getElementById('cover-image');
+        const tracksListDiv = document.getElementById('tracks-list');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+
+        // --- Loading Indicator ---
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+            loadingIndicator.classList.add('flex');
+            fetchButton.disabled = true;
+        }
+
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+            loadingIndicator.classList.remove('flex');
+            fetchButton.disabled = false;
+        }
+
+        // --- Message Box ---
+        function showMessage(message, isError = true) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden', 'opacity-0', 'translate-y-[-20px]');
+            messageBox.classList.add('opacity-100', 'translate-y-0');
+            messageBox.classList.toggle('bg-red-600', isError);
+            messageBox.classList.toggle('bg-spotify-green', !isError); // Use green for success
+            messageBox.classList.toggle('text-black', !isError); // Black text on green bg
+            messageBox.classList.toggle('text-white', isError); // White text on red bg
+
+
+            // Auto-hide after 5 seconds
+            setTimeout(hideMessage, 5000);
+        }
+
+        function hideMessage() {
+            messageBox.classList.add('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 300); // Match transition duration
+        }
+
+        // --- Reset Results ---
+        function resetResults() {
+            tracksListDiv.innerHTML = '<p class="text-center text-gray-500">Enter a URL to see tracks.</p>'; // Reset placeholder
+            coverImage.src = 'https://placehold.co/200x200/1d1d1d/282828?text=Cover+Art'; // Reset placeholder
+            coverImage.classList.add('hidden'); // Hide cover initially
+            resultsContainer.classList.remove('visible'); // Hide container
+        }
+
+
+        // --- Fetch Data ---
+        fetchButton.addEventListener('click', async () => {
+            const spotifyUrl = urlInput.value.trim();
+
+            if (!spotifyUrl) {
+                showMessage("Bruh, enter a Spotify URL first! 🙄");
+                return;
+            }
+
+            // Basic check for spotify URL (can be improved)
+            if (!spotifyUrl.includes("spotify.com")) {
+                 showMessage("That doesn't look like a Spotify URL, my dude. 🤔");
+                 return;
+            }
+
+
+            // Use the same Netlify function endpoint
+            const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(spotifyUrl)}`;
+
+            showLoading();
+            resetResults(); // Clear previous results before fetching
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                // Check the structure of the response carefully
+                if (response.ok && data.response && Array.isArray(data.response.tracks) && data.response.tracks.length > 0) {
+                    displayResults(data.response);
+                    resultsContainer.classList.add('visible'); // Show results smoothly
+                } else if (response.ok && data.response && data.response.downloadUrl) {
+                     // Handle case where API directly returns a single download URL (maybe for single tracks?)
+                     // This might need adjustment based on actual API behavior
+                     displaySingleTrackResult(data.response);
+                     resultsContainer.classList.add('visible');
+                }
+                 else {
+                    // Handle API errors or empty results
+                     throw new Error(data.error || data.message || "No tracks found or invalid response. Try a different URL? 🤷‍♂️");
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                showMessage("Error: " + error.message);
+                resetResults(); // Ensure results are hidden on error
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // --- Display Results (for playlists/albums) ---
+        function displayResults(data) {
+            const tracks = data.tracks;
+            tracksListDiv.innerHTML = ''; // Clear placeholder or previous results
+
+            // Update cover image with the first track's image (common for albums/playlists)
+             if (tracks[0].coverImageUrl) {
+                coverImage.src = tracks[0].coverImageUrl;
+                coverImage.classList.remove('hidden');
+                 coverImage.onerror = () => { // Fallback
+                    coverImage.src = 'https://placehold.co/200x200/1d1d1d/282828?text=Cover+Error';
+                 }
+            } else {
+                 coverImage.classList.add('hidden');
+            }
+
+
             tracks.forEach((track, index) => {
                 const trackElement = document.createElement('div');
-                trackElement.className = 'track-details';
+                // Use slightly darker background for track items for contrast
+                trackElement.className = 'track-details bg-spotify-card-hover p-3 rounded-lg flex items-center justify-between gap-3 hover:bg-gray-700 transition duration-150';
+
+                // Sanitize inputs (basic example)
+                const trackName = track.trackName ? track.trackName.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Unknown Track';
+                const artists = track.artists ? track.artists.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Unknown Artist';
+                // Use track.spotifyUrl or track.id depending on what downloadSingleTrack expects
+                const trackIdentifier = track.spotifyUrl || track.id || '';
+
+
                 trackElement.innerHTML = `
-                    <p><strong>Track ${index + 1}:</strong> ${track.trackName}</p>
-                    <p>Artist: ${track.artists}</p>
-                    <button onclick="downloadSingleTrack('${track.spotifyUrl}')">Download</button>
+                    <div class="flex-grow min-w-0"> {/* Min width prevents overflow */}
+                        <p class="text-sm font-semibold text-spotify-heading truncate" title="${trackName}">${index + 1}. ${trackName}</p>
+                        <p class="text-xs text-spotify-text truncate" title="${artists}">${artists}</p>
+                    </div>
+                    <button onclick="downloadSingleTrack('${trackIdentifier}')" class="download-button flex-shrink-0 bg-spotify-green text-spotify-dark text-xs font-bold px-3 py-1 rounded-full hover:bg-spotify-green-hover transition duration-200 disabled:opacity-50 disabled:cursor-wait" title="Download ${trackName}">
+                        Download
+                    </button>
                 `;
-                document.getElementById('tracks-list').appendChild(trackElement);
+                tracksListDiv.appendChild(trackElement);
             });
-
-            // Show the result for multiple tracks
-            document.getElementById('result').style.display = 'flex';
-        } else {
-            alert('No track information found. Try a different URL.');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while fetching the track information. Try Again Rizzler.');
-    } finally {
-        loadingText.style.display = 'none';
-        fetchButton.disabled = false;
-    }
-}
 
-async function downloadTrack(downloadUrl) {
-  try {
-    window.location.href = downloadUrl; // Trigger the download
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Failed to fetch download link for this track.');
-  }
-}
+         // --- Display Single Track Result ---
+         // Simplified display if the API returns info for just one track directly
+        function displaySingleTrackResult(track) {
+             tracksListDiv.innerHTML = ''; // Clear placeholder
 
-async function downloadSingleTrack(trackId) {
-    const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${trackId}`;
-    
-    try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+             if (track.coverImageUrl) {
+                coverImage.src = track.coverImageUrl;
+                coverImage.classList.remove('hidden');
+                 coverImage.onerror = () => { coverImage.src = 'https://placehold.co/200x200/1d1d1d/282828?text=Cover+Error'; }
+            } else {
+                 coverImage.classList.add('hidden');
+            }
 
-        if (data.response && data.response.downloadUrl) {
-            window.location.href = data.response.downloadUrl;
-        } else {
-            alert('Download URL not available for this track.');
+             const trackElement = document.createElement('div');
+             trackElement.className = 'track-details bg-spotify-card-hover p-3 rounded-lg flex items-center justify-between gap-3';
+
+             const trackName = track.trackName ? track.trackName.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Unknown Track';
+             const artists = track.artists ? track.artists.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Unknown Artist';
+             // Assuming the download URL is directly available in this case
+             const downloadUrl = track.downloadUrl || '';
+             const canDownloadDirectly = !!downloadUrl; // Check if direct download URL exists
+
+             trackElement.innerHTML = `
+                <div class="flex-grow min-w-0">
+                    <p class="text-sm font-semibold text-spotify-heading truncate" title="${trackName}">${trackName}</p>
+                    <p class="text-xs text-spotify-text truncate" title="${artists}">${artists}</p>
+                </div>
+                ${canDownloadDirectly ?
+                    `<a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" download class="download-button flex-shrink-0 bg-spotify-green text-spotify-dark text-xs font-bold px-3 py-1 rounded-full hover:bg-spotify-green-hover transition duration-200" title="Download ${trackName}">Download</a>`
+                    :
+                    `<button class="download-button flex-shrink-0 bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full cursor-not-allowed" title="Download not available" disabled>Unavailable</button>`
+                }
+            `;
+             tracksListDiv.appendChild(trackElement);
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to fetch download link for this track.');
-    }
-}
-  </script>  
+
+
+        // --- Download Logic ---
+        async function downloadSingleTrack(trackIdentifier) {
+             // Find the corresponding button to disable it
+             const buttons = tracksListDiv.querySelectorAll('.download-button');
+             let clickedButton = null;
+             buttons.forEach(btn => {
+                 // Check if the onclick attribute contains the trackIdentifier
+                 const onclickAttr = btn.getAttribute('onclick');
+                 if (onclickAttr && onclickAttr.includes(`'${trackIdentifier}'`)) {
+                     clickedButton = btn;
+                 }
+             });
+
+             if (clickedButton) {
+                 clickedButton.disabled = true;
+                 clickedButton.textContent = '...'; // Indicate loading
+             }
+
+            // Re-fetch using the track's specific identifier (URL or ID)
+            // This assumes the same API endpoint can handle individual track URLs/IDs
+            const apiUrl = `https://lokiai.netlify.app/.netlify/functions/yt-info?url=${encodeURIComponent(trackIdentifier)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (response.ok && data.response && data.response.downloadUrl) {
+                    // Trigger download by redirecting
+                    window.location.href = data.response.downloadUrl;
+                    // Optionally show a success message, though redirection might be enough
+                    // showMessage("Download started!", false);
+                } else {
+                    throw new Error(data.error || data.message || 'Could not get download link for this track. Lame. 👎');
+                }
+            } catch (error) {
+                console.error('Download Error:', error);
+                showMessage('Download Failed: ' + error.message);
+            } finally {
+                 // Re-enable the button after attempt
+                 if (clickedButton) {
+                     clickedButton.disabled = false;
+                     clickedButton.textContent = 'Download'; // Reset text
+                 }
+            }
+        }
+
+        // --- Initial Setup ---
+        resetResults(); // Ensure clean state on load
+
+    </script>
 </body>
+</html>
